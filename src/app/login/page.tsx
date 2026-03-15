@@ -22,7 +22,7 @@ export default function LoginPage() {
 
     if (res?.error) {
       setError("Invalid credentials");
-    } else {
+    } else if (res?.ok) {
       // Fetch session to determine role and route correctly
       const sessionRes = await fetch("/api/auth/session");
       const session = await sessionRes.json();
