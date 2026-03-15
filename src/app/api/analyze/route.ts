@@ -2,10 +2,6 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import OpenAI from "openai";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
 export async function POST(req: Request) {
   try {
     const session = await auth();
@@ -49,6 +45,10 @@ export async function POST(req: Request) {
         "missingSkills": (an array of strings representing key skills missing from the resume)
       }
     `;
+
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY || "dummy-key",
+    });
 
     const response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
