@@ -2,10 +2,6 @@
 
 import { useState, useRef } from "react";
 import { UploadCloud, FileText, CheckCircle, Loader2 } from "lucide-react";
-import * as pdfjsLib from "pdfjs-dist";
-
-// Need to set worker source for PDF.js to function in browser
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
 export default function ResumeUploader({ onScoreUpdated }: { onScoreUpdated: (score: number) => void }) {
   const [isParsing, setIsParsing] = useState(false);
@@ -14,21 +10,6 @@ export default function ResumeUploader({ onScoreUpdated }: { onScoreUpdated: (sc
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const extractTextFromPDF = async (file: File): Promise<string> => {
-    const arrayBuffer = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-    let fullText = "";
-
-    for (let i = 1; i <= pdf.numPages; i++) {
-      const page = await pdf.getPage(i);
-      const textContent = await page.getTextContent();
-      const pageText = textContent.items.map((item: any) => item.str).join(" ");
-      fullText += pageText + "\n";
-    }
-
-    return fullText;
-  };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -44,9 +25,18 @@ export default function ResumeUploader({ onScoreUpdated }: { onScoreUpdated: (sc
       setSuccess(false);
       setFileName(file.name);
       
-      // 1. Parse PDF text locally
+      // 1. Send PDF to Server API for local parsing
       setIsParsing(true);
-      const text = await extractTextFromPDF(file);
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const parseRes = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!parseRes.ok) throw new Error("Could not parse PDF text");
+      const { text } = await parseRes.json();
       setIsParsing(false);
 
       if (!text || text.trim().length < 50) {
@@ -114,7 +104,7 @@ export default function ResumeUploader({ onScoreUpdated }: { onScoreUpdated: (sc
 
       {isParsing && (
         <div style={{ padding: '0.75rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text-secondary)' }}>
-          <Loader2 size={16} className="spin" /> Reading PDF Text...
+          <Loader2 size={16} className="spin" /> Reading PDF on Server...
         </div>
       )}
 
