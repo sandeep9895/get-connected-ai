@@ -33,6 +33,7 @@ model SeekerProfile {
   bio          String?
   location     String?
   resumeUrl    String?
+  resumeText   String?  // The raw text parsed from the uploaded PDF
   parsedSkills String?  // Storing as JSON string or text for flexibility
   atsScore     Int?
   
