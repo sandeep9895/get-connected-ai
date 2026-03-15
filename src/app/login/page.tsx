@@ -23,7 +23,14 @@ export default function LoginPage() {
     if (res?.error) {
       setError("Invalid credentials");
     } else {
-      router.push("/api/auth/session"); // Or we can route correctly after checking role
+      // Fetch session to determine role and route correctly
+      const sessionRes = await fetch("/api/auth/session");
+      const session = await sessionRes.json();
+      if (session?.user?.role === "EMPLOYER") {
+        router.push("/dashboard/employer");
+      } else {
+        router.push("/dashboard/seeker");
+      }
     }
   };
 
