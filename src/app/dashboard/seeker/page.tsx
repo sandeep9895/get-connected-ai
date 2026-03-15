@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { ArrowLeft, User, Briefcase, Zap, Compass } from "lucide-react";
+import ProfileStats from "./ProfileStats";
 
 export default async function SeekerDashboard() {
   const session = await auth();
@@ -34,31 +35,11 @@ export default async function SeekerDashboard() {
       <div className="container" style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 1fr) 2fr', gap: '2rem' }}>
         
         {/* Profile Stats Panel */}
-        <section className="glass-panel" style={{ alignSelf: 'start' }}>
-          <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-            <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'var(--gradient-primary)', margin: '0 auto 1rem auto', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem', fontWeight: 700 }}>
-              {profile?.name?.[0] || 'U'}
-            </div>
-            <h2>{profile?.name || "Job Seeker"}</h2>
-            <p style={{ color: 'var(--text-secondary)' }}>{profile?.headline || "Add your headline..."}</p>
-          </div>
-
-          <div style={{ borderTop: '1px solid var(--border-glass)', paddingTop: '1.5rem', marginBottom: '1.5rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-              <span style={{ color: 'var(--text-secondary)' }}>AI ATS Score</span>
-              <span style={{ fontWeight: 600, color: atsScore > 80 ? 'var(--accent-primary)' : 'var(--text-primary)' }}>
-                {atsScore}/100
-              </span>
-            </div>
-            <div style={{ width: '100%', height: '8px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px', overflow: 'hidden' }}>
-              <div style={{ width: `${atsScore}%`, height: '100%', background: 'var(--gradient-glow)' }}></div>
-            </div>
-          </div>
-
-          <button className="btn btn-primary" style={{ width: '100%' }}>
-            <Zap size={16} /> Optimize Resume with AI
-          </button>
-        </section>
+        <ProfileStats 
+          initialScore={atsScore} 
+          profileName={profile?.name || session.user.email!} 
+          headline={profile?.headline || "Add your headline..."} 
+        />
 
         {/* Matches / Feed Panel */}
         <section>
