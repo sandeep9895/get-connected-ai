@@ -1,0 +1,90 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Enums are not supported in SQLite, using Strings instead
+// Role: 'SEEKER' | 'EMPLOYER'
+// MatchStatus: 'PENDING' | 'ACCEPTED' | 'REJECTED'
+
+model User {
+  id              String           @id @default(cuid())
+  email           String           @unique
+  passwordHash    String
+  role            String           @default("SEEKER")
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  seekerProfile   SeekerProfile?
+  employerProfile EmployerProfile?
+}
+
+model SeekerProfile {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  name         String
+  headline     String?
+  bio          String?
+  location     String?
+  resumeUrl    String?
+  parsedSkills String?  // Storing as JSON string or text for flexibility
+  atsScore     Int?
+  
+  matches      Match[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model EmployerProfile {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  companyName String
+  industry    String?
+  location    String?
+  websiteUrl  String?
+  logoUrl     String?
+  
+  jobs        JobPosting[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model JobPosting {
+  id             String          @id @default(cuid())
+  employerId     String
+  employer       EmployerProfile @relation(fields: [employerId], references: [id], onDelete: Cascade)
+  
+  title          String
+  description    String
+  requiredSkills String?         // Storing as JSON string
+  location       String?
+  isActive       Boolean         @default(true)
+  
+  matches        Match[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+}
+
+model Match {
+  id        String      @id @default(cuid())
+  seekerId  String
+  jobId     String
+  score     Int
+  status    String      @default("PENDING")
+  
+  seeker    SeekerProfile @relation(fields: [seekerId], references: [id], onDelete: Cascade)
+  job       JobPosting    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@unique([seekerId, jobId])
+}
