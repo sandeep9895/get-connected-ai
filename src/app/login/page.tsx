@@ -17,20 +17,12 @@ export default function LoginPage() {
     const res = await signIn("credentials", {
       email,
       password,
-      redirect: false,
+      redirect: true,
+      callbackUrl: "/dashboard/seeker"
     });
 
     if (res?.error) {
       setError("Invalid credentials");
-    } else if (res?.ok) {
-      // Fetch session to determine role and route correctly
-      const sessionRes = await fetch("/api/auth/session");
-      const session = await sessionRes.json();
-      if (session?.user?.role === "EMPLOYER") {
-        router.push("/dashboard/employer");
-      } else {
-        router.push("/dashboard/seeker");
-      }
     }
   };
 
