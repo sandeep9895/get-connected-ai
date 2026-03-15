@@ -1,6 +1,7 @@
 "use client";
 import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { Zap } from "lucide-react";
 
@@ -31,8 +32,24 @@ function RegisterForm() {
       });
       
       if (res.ok) {
-        // Automatically route to login
-        router.push("/login?registered=true");
+        // Automatically sign in the user
+        const signInRes = await signIn("credentials", {
+          email,
+          password,
+          redirect: false,
+        });
+
+        if (signInRes?.ok) {
+          const sessionRes = await fetch("/api/auth/session");
+          const session = await sessionRes.json();
+          if (session?.user?.role === "EMPLOYER") {
+            router.push("/dashboard/employer");
+          } else {
+            router.push("/dashboard/seeker");
+          }
+        } else {
+           router.push("/login?registered=true");
+        }
       } else {
         const data = await res.json();
         setError(data.message || "Registration failed");
