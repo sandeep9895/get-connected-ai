@@ -43,12 +43,12 @@ function RegisterForm() {
           const sessionRes = await fetch("/api/auth/session");
           const session = await sessionRes.json();
           if (session?.user?.role === "EMPLOYER") {
-            router.push("/dashboard/employer");
+            window.location.assign("/dashboard/employer");
           } else {
-            router.push("/dashboard/seeker");
+            window.location.assign("/dashboard/seeker");
           }
         } else {
-           router.push("/login?registered=true");
+           window.location.assign("/login?registered=true");
         }
       } else {
         const data = await res.json();

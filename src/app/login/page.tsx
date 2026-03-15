@@ -14,15 +14,29 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    const res = await signIn("credentials", {
-      email,
-      password,
-      redirect: true,
-      callbackUrl: "/dashboard/seeker"
-    });
+    try {
+      const res = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
 
-    if (res?.error) {
-      setError("Invalid credentials");
+      if (res?.error) {
+        setError("Invalid credentials");
+      } else if (res?.ok) {
+        // Fetch session to determine role and route correctly
+        const sessionRes = await fetch("/api/auth/session");
+        const session = await sessionRes.json();
+        
+        // Force the browser to aggressively navigate to defeat Vercel cache
+        if (session?.user?.role === "EMPLOYER") {
+          window.location.assign("/dashboard/employer");
+        } else {
+          window.location.assign("/dashboard/seeker");
+        }
+      }
+    } catch (err) {
+      setError("An unexpected error occurred");
     }
   };
 
